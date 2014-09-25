@@ -1,0 +1,93 @@
+Index: setup.py
+===================================================================
+--- setup.py    (revision 20)
++++ setup.py    (working copy)
+@@ -1,7 +1,7 @@
+ from setuptools import find_packages
+ from setuptools import setup
+ 
+-version = '0.1'
++version = '0.2'
+ 
+ setup(name='shibsso',
+       version=version,
+Index: shibsso/admin.py
+===================================================================
+--- shibsso/admin.py    (revision 20)
++++ shibsso/admin.py    (working copy)
+@@ -23,7 +23,7 @@
+ from django.http import HttpResponseRedirect
+ from django.shortcuts import render_to_response
+ from django.template import RequestContext
+-from django.utils.functional import update_wrapper
++from functools import update_wrapper
+ from django.utils.http import urlquote
+ from django.utils.translation import ugettext as _
+ from django.views.decorators.cache import never_cache
+@@ -111,4 +111,4 @@
+ 
+         return views.logout(request, ** defaults)
+ 
+-    logout = never_cache(logout)
+\ No newline at end of file
++    logout = never_cache(logout)
+Index: shibsso/backends.py
+===================================================================
+--- shibsso/backends.py (revision 20)
++++ shibsso/backends.py (working copy)
+@@ -52,7 +52,7 @@
+          authentication credentials are invalid.
+          
+         """
+-        
++
+         username = request.META.get(settings.META_USERNAME)
+ 
+         if not username:
+@@ -61,17 +61,20 @@
+         email = request.META.get(settings.META_EMAIL, '')
+         firstname = request.META.get(settings.META_FIRSTNAME, '')
+         lastname = request.META.get(settings.META_LASTNAME, '')
+-        groups = request.META.get(settings.META_GROUP)
+-        if groups:
+-            groups = map(str.strip, filter(None, groups.split(';')))
+-        else:
+-            groups = []
++        groups = request.META.get(settings.META_GROUP) or ''
+ 
++        # Commented due to a strange bug appeared on some machines
++        #groups = map(str.strip, filter(None, groups.split(';')))
++
++        groups_arr = groups.split(';')
++        groups = [ x.strip() for x in groups_arr if x ]
++
+         user = ShibSSOBackend._get_updated_user(username, email,
+                                                 firstname, lastname, groups)
+ 
+         return user
+ 
++    @staticmethod
+     def _get_updated_user(login, email, firstname, lastname,
+                           groups):
+         """Get an updated instance of a user. The following fields are updated:
+@@ -99,12 +102,12 @@
+             user.is_active = settings.SHIB_SSO_CREATE_ACTIVE
+             user.is_staff = settings.SHIB_SSO_CREATE_STAFF
+             user.is_superuser = settings.SHIB_SSO_CREATE_SUPERUSER
+-            user.save()
+ 
+         user.email = email
+         user.first_name = firstname
+         user.last_name = lastname
+         user.password = '(not used)'
++        user.save()
+ 
+         user.groups = filter(None, map(get_group, groups))
+ 
+@@ -112,4 +115,4 @@
+ 
+         return user
+ 
+-    _get_updated_user = staticmethod(_get_updated_user)
+\ No newline at end of file
++
