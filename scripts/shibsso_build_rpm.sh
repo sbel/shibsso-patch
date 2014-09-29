@@ -17,7 +17,7 @@ gzip django-shibsso-0.2.tar
 cd ..
 mkdir rpm-build
 for d in BUILD  BUILDROOT  RPMS  SOURCES  SPECS  SRPMS; do mkdir rpm-build/$d; done
-rpmbuild  -tb --define "_topdir `pwd`/rpm-build" --define "dist .el6" temp/django-shibsso-0.2.tar.gz
+rpmbuild  -tb --define "_topdir `pwd`/rpm-build" temp/django-shibsso-0.2.tar.gz
 
 echo -e "\n\n"
 echo "RPM is in '`pwd`/rpm-build/RPMS/noarch'"
